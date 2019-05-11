@@ -1,0 +1,388 @@
+# OS開発メモ
+
+## 2019-04-20
+
+### 参考URL
+*  GRUB2からの起動プログラム
+    - URL: https://qiita.com/sp6/items/228e63030ea0124e42c0
+* Macでの開発(クロスコンパイル環境)
+    - URL1: http://morimolymoly.hateblo.jp/entry/2017/12/31/144712
+    - URL2: https://qiita.com/tatsumack/items/9f1ae8dee4dbb33b7406
+    - URL3: http://morimolymoly.hateblo.jp/entry/2017/12/31/144712
+    - URL4: https://qiita.com/yakawa/items/b4d3abc7dabd84013de1
+
+### クロスコンパイル環境構築手順
+
+#### 準備
+
+argent-2:binutils-2.32 eiji$ brew install gmp    ←すでに入っていた
+argent-2:binutils-2.32 eiji$ brew install mpfr
+Updating Homebrew...
+==> Downloading https://homebrew.bintray.com/bottles/mpfr-4.0.2.high_sierra.bott
+==> Downloading from https://akamai.bintray.com/bf/bf5d21e7e8e549f7e8d07791a90f4
+######################################################################## 100.0%
+==> Pouring mpfr-4.0.2.high_sierra.bottle.tar.gz
+🍺  /usr/local/Cellar/mpfr/4.0.2: 28 files, 4.7MB
+argent-2:binutils-2.32 eiji$ brew install libmpc
+==> Downloading https://homebrew.bintray.com/bottles/libmpc-1.1.0.high_sierra.bo
+######################################################################## 100.0%
+==> Pouring libmpc-1.1.0.high_sierra.bottle.tar.gz
+🍺  /usr/local/Cellar/libmpc/1.1.0: 12 files, 353.8KB
+
+※ gccを入れ換え
+argent-2:binutils-2.32 eiji$ brew install gcc
+
+  ← gcc-8が入った(8.3.0)
+
+※ gmake をインストール
+argent-2:gcc-8.3.0 eiji$ brew install gmake
+
+
+
+argent-2:~ eiji$ export CC=/usr/local/bin/gcc-8
+argent-2:~ eiji$ export LD=/usr/local/bin/gcc-8
+argent-2:~ eiji$ export PREFIX="/usr/local/i386elfgcc"
+argent-2:~ eiji$ export TARGET=i386-elf
+argent-2:~ eiji$ export PATH="$PREFIX/bin:$PATH"
+argent-2:~ eiji$ 
+argent-2:~ eiji$ mkdir tmp/src
+argent-2:~ eiji$ cd tmp/src
+
+※ gwakがないと怒られるので
+argent-2:binutils-2.32 eiji$ brew install gawk
+Updating Homebrew...
+==> Installing dependencies for gawk: readline
+==> Installing gawk dependency: readline
+==> Downloading https://homebrew.bintray.com/bottles/readline-8.0.0.high_sierra.
+==> Downloading from https://akamai.bintray.com/9f/9f5c4da065626612770b0176f5eca
+######################################################################## 100.0%
+==> Pouring readline-8.0.0.high_sierra.bottle.tar.gz
+==> Caveats
+readline is keg-only, which means it was not symlinked into /usr/local,
+because macOS provides the BSD libedit library, which shadows libreadline.
+In order to prevent conflicts when programs look for libreadline we are
+defaulting this GNU Readline installation to keg-only.
+
+For compilers to find readline you may need to set:
+  export LDFLAGS="-L/usr/local/opt/readline/lib"
+  export CPPFLAGS="-I/usr/local/opt/readline/include"
+
+For pkg-config to find readline you may need to set:
+  export PKG_CONFIG_PATH="/usr/local/opt/readline/lib/pkgconfig"
+
+==> Summary
+🍺  /usr/local/Cellar/readline/8.0.0: 48 files, 1.5MB
+==> Installing gawk
+==> Downloading https://homebrew.bintray.com/bottles/gawk-5.0.0.high_sierra.bott
+==> Downloading from https://akamai.bintray.com/8b/8b935dbbfcc134e9f546399fc16ec
+######################################################################## 100.0%
+==> Pouring gawk-5.0.0.high_sierra.bottle.tar.gz
+🍺  /usr/local/Cellar/gawk/5.0.0: 89 files, 4.6MB
+==> Caveats
+==> readline
+readline is keg-only, which means it was not symlinked into /usr/local,
+because macOS provides the BSD libedit library, which shadows libreadline.
+In order to prevent conflicts when programs look for libreadline we are
+defaulting this GNU Readline installation to keg-only.
+
+For compilers to find readline you may need to set:
+  export LDFLAGS="-L/usr/local/opt/readline/lib"
+  export CPPFLAGS="-I/usr/local/opt/readline/include"
+
+For pkg-config to find readline you may need to set:
+  export PKG_CONFIG_PATH="/usr/local/opt/readline/lib/pkgconfig"
+
+---(gawkここまで)
+
+#### binutilesのインストール
+argent-2:src eiji$ curl -O http://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.gz
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 39.2M  100 39.2M    0     0   261k      0  0:02:33  0:02:33 --:--:--  489k
+
+※ binutils
+argent-2:binutils-2.32 eiji$ ./configure --target=$TARGET --enable-interwork --enable-multilib --disable-nls --disable-werror --prefix=$PREFIX 2>&1 | tee configure.log
+
+※ libiconv
+
+argent-2:src eiji$ curl -O https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.15.tar.gz
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 5140k  100 5140k    0     0   257k      0  0:00:19  0:00:19 --:--:--  106k
+argent-2:src eiji$ 
+argent-2:src eiji$ 
+argent-2:src eiji$ 
+argent-2:src eiji$ tar zxf libiconv-1.15.tar.gz 
+argent-2:src eiji$ cd libiconv-1.15
+argent-2:libiconv-1.15 eiji$ ./configure -prefix=/usr/local
+
+make
+sudo make install
+
+※ クロスコンパイル用gcc
+
+argent-2:src eiji$ curl -O https://ftp.gnu.org/gnu/gcc/gcc-8.3.0/gcc-8.3.0.tar.gz
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  108M  100  108M    0     0   149k      0  0:12:28  0:12:28 --:--:--  128k
+argent-2:src eiji$ tar zxf gcc-8.3.0.tar.gz 
+mkdir gcc-build    ← makeには別ディレクトリを作らないといけない
+cd gcc-build
+argent-2:gcc-8.3.0 eiji$ ../gcc-8.3.0/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --disable-libssp --enable-languages=c --without-headers --with-gmp=/usr/local --with-mpfr=/usr/local --with-mpfr=/usr/local --with-libiconv-prefix=/usr/local
+
+make all-gcc 
+make all-target-libgcc 
+sudo make install-gcc 
+sudo make install-target-libgcc
+
+/usr/local/i386elfgcc/bin/i386-elf-gcc -v    ←バージョンチェック
+
+* objconvのインストール(GRUB2に必要)
+    -URL: https://www.agner.org/optimize/objconv.zip
+
+    ※ curlでとってきてunzipコマンドで展開しようとしてもうまくいかない
+
+    zipを開いて中のsource.zipをさらに展開する。
+
+cd source
+sh build.sh
+argent-2:source eiji$ sudo cp objconv /usr/local/bin/
+
+* GRUB2のインストール
+
+argent-2:src eiji$ curl -O https://ftp.gnu.org/gnu/grub/grub-2.02.tar.gz
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 10.0M  100 10.0M    0     0  2763k      0  0:00:03  0:00:03 --:--:-- 2763k
+argent-2:src eiji$ tar zxf grub-2.02.tar.gz 
+argent-2:src eiji$ cd grub-2.02
+
+* GRUB2のサンプルOSを動かす
+
+    - URL: https://qiita.com/sp6/items/228e63030ea0124e42c0
+
+argent-2:grub-2.02 eiji$ tar zxf grub-2.02.tar.gz 
+argent-2:grub-2.02 eiji$ cd grub-2.02
+argent-2:grub-2.02 eiji$ ./autogen.sh
+./configure
+make
+
+----GRUB2パッチ
+
+  ※ GCC 8系統でコンパイルエラー
+  "error: alignment 1 of ‘struct grub_gpt_partentry’ is less than 8 [-Werror=packed-not-aligned]"
+
+  - URL: https://lists.gnu.org/archive/html/grub-devel/2018-03/msg00085.html
+
+パッチを当てる
+---
+ grub-core/fs/btrfs.c          | 2 +-
+ include/grub/efiemu/runtime.h | 2 +-
+ include/grub/gpt_partition.h  | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/grub-core/fs/btrfs.c b/grub-core/fs/btrfs.c
+index 4849c1ceb..be195448d 100644
+--- a/grub-core/fs/btrfs.c
++++ b/grub-core/fs/btrfs.c
+@@ -175,7 +175,7 @@ struct grub_btrfs_time
+ {
+   grub_int64_t sec;
+   grub_uint32_t nanosec;
+-} __attribute__ ((aligned (4)));
++} GRUB_PACKED;
+ 
+ struct grub_btrfs_inode
+ {
+diff --git a/include/grub/efiemu/runtime.h b/include/grub/efiemu/runtime.h
+index 9b6b729f4..36d2dedf4 100644
+--- a/include/grub/efiemu/runtime.h
++++ b/include/grub/efiemu/runtime.h
+@@ -29,7 +29,7 @@ struct grub_efiemu_ptv_rel
+ 
+ struct efi_variable
+ {
+-  grub_efi_guid_t guid;
++  grub_efi_packed_guid_t guid;
+   grub_uint32_t namelen;
+   grub_uint32_t size;
+   grub_efi_uint32_t attributes;
+diff --git a/include/grub/gpt_partition.h b/include/grub/gpt_partition.h
+index 1b32f6725..9668a68c3 100644
+--- a/include/grub/gpt_partition.h
++++ b/include/grub/gpt_partition.h
+@@ -28,7 +28,7 @@ struct grub_gpt_part_type
+   grub_uint16_t data2;
+   grub_uint16_t data3;
+   grub_uint8_t data4[8];
+-} __attribute__ ((aligned(8)));
++} GRUB_PACKED;
+ typedef struct grub_gpt_part_type grub_gpt_part_type_t;
+ 
+ #define GRUB_GPT_PARTITION_TYPE_EMPTY \
+-- 
+2.13.6
+
+----ここまで
+
+configureは次のように実施。
+
+mkdir dobuild
+cd dobuild
+../configure --disable-werror TARGET_CC=/usr/local/i386elfgcc/bin/i386-elf-gcc TARGET_OBJCOPY=/usr/local/i386elfgcc/bin/i386-elf-objcopy TARGET_STRIP=/usr/local/i386elfgcc/bin/i386-elf-strip TARGET_NM=/usr/local/i386elfgcc/bin/i386-elf-nm TARGET_RANLIB=/usr/local/i386elfgcc/lib/i386-elf-ranlib --target=i386-elf
+
+
+makeすると以下のエラーが出る。
+
+/var/folders/ds/wfbby30s4bz1j694wnx0rsdr0000gn/T//ccKvULdU.s:95:22: error: invalid variant 'PLTOFF'
+        movabsq $_grub_free@PLTOFF, %rax
+
+メモリモデルがMacではあわないらしい。
+configureの"-mcmodel=large"を"-mcmodel=small"に修正する。
+
+次のエラー
+
+argent-2:grub-2.02 eiji$ make
+/Applications/Xcode.app/Contents/Developer/usr/bin/make  all-recursive
+Making all in grub-core/gnulib
+/Applications/Xcode.app/Contents/Developer/usr/bin/make  all-recursive
+make[4]: Nothing to be done for `all-am'.
+Making all in .
+Making all in grub-core
+/Applications/Xcode.app/Contents/Developer/usr/bin/make  all-am
+TARGET_OBJ2ELF= sh genmod.sh moddep.lst disk.module build-grub-module-verifier disk.mod
+
+Input file: disk.mod.tmp.bin, output file: disk.mod.tmp
+Converting from Mach-O Little Endian64 to ELF64
+Removing leading underscores from symbol names
+Changing leading underscores on section names to dot
+
+  0 Debug sections removed
+  0 Exception sections removed
+ 13 Changes in leading underscores on symbol names
+  7 Changes in leading characters on section names
+  2 Symbol names changed
+build-grub-module-verifier: error: relocation 0x2 is not module-local.
+make[3]: *** [disk.mod] Error 1
+make[2]: *** [all] Error 2
+make[1]: *** [all-recursive] Error 1
+make: *** [all] Error 2
+
+---
+
+$ make
+$ sudo make install
+
+
+---
+
+#### grub2でISOイメージを作成する
+
+anzu.elfからISOイメージ作成時にエラーになった。
+
+grub-mkrescue: warning: Your xorriso doesn't support `--grub2-boot-info'. Some features are disabled. Please use xorriso 1.2.9 or later..
+
+Homebrewからxorrisoをインストール
+
+$ sudo chown -R $(whoami) /usr/local/sbin
+$ brew install xorriso
+
+### JHCのコンパイル
+
+最初にconfigureを作る
+
+$ autoreconf --install
+
+configureを実行する。
+
+$ ./configure
+
+Some packages were not found:
+ module 'Codec.Compression.Zlib' from package 'zlib'
+ module 'Data.ByteString.UTF8' from package 'utf8-string'
+ module 'Data.Yaml.Syck' from package 'HsSyck'
+ module 'Text.Regex' from package 'regex-compat'
+
+というエラーが出る。
+
+$ cabal install zlib
+$ cabal install utf8-string HsSyck regex-compat
+
+再度 configure
+
+$ ./configure
+
+### DrIFT
+
+jhcのコンパイルに必要
+
+http://hackage.haskell.org/package/DrIFT から入手
+
+$ git clone http://hackage.haskell.org/package/DrIFT
+
+$ autoreconf -i
+$ ./configure
+$ make cabal-install
+
+### alex & happy
+
+jhcのコンパイルに必要
+
+$ cabal install alex happy
+
+## ajhcのインストール
+
+jhcを苦労してインストールしようとしたが、ajhcがcabalでインストールできてしま,,,
+わなかった。
+
+$ cabal install ajhc
+エラーになる。
+
+ソースを持ってきてコンパイルして見るとエラーが出る。
+
+src/Doc/DocLike.hs
+
+---
+import Prelude hiding ((<$>))
+---
+
+を追加する。
+
+#### RustでOSを作る参考情報
+
+https://qiita.com/tomoyuki-nakabayashi/items/76f912adb6b7da6030c7
+
+RustにLinuxのtargetを追加する。まずはrustupのインストール
+
+$ brew install rustup
+
+targetとしてi686用を追加
+
+$ rustup target add i686-unknown-linux-gnu
+
+
+/usr/local/i386elfgcc/bin/i386-elf-ld  -melf_i386  -Ttext=0x100000 --oformat elf32-i386 -o anzu.elf boot.o ../../target/i686-unknown-linux-gnu/debug/libanzu.a
+
+#### Rust コアライブラリ
+
+コアライブラリがないと便利な機能が使えない。下記に説明がある。
+
+http://mmi.hatenablog.com/entry/2017/07/27/230005
+
+## 結局やったこと
+
+* i686-ELF向けGCCの導入
+
+* Rust クロスコンパイル環境（toolchain）
+
+* Rust nightly 版の使用
+
+* xargo の使用
+
+* coreライブラリの導入
+
+* Cargo.toml へpanic関数の件を記載
+
+
+        
+    
